@@ -1,45 +1,61 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ImageBackground } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Animated, {
   BounceInDown,
+  BounceInRight,
+  BounceInLeft,
   BounceInUp,
-  PinwheelIn,
-  PinwheelOut,
+  BounceOutRight,
 } from 'react-native-reanimated';
-const HomeScreen = () => {
-  const navigation = useNavigation();
+import { ThemedButton } from 'react-native-really-awesome-button';
+
+const JoinOrCreateScreen = ({ globalVariables, navigation }) => {
+  const { created, setCreated, playerNames } = globalVariables;
 
   return (
     <ImageBackground
-      source={require('../../assets/deck-of-cards2.jpg')}
-      className={`flex-1 items-center justify-center`}>
+      source={require('../../assets/deck-of-cards3.jpg')}
+      className={`flex-1 items-center justify-center bg-cover`}>
       <Animated.View
-        entering={BounceInDown}
-        className={`bg-blue-100/50 bg-opacity-50 px-4 py-8 rounded-xl`}>
-        <View className={`mb-8`}>
-          <Text className={`text-3xl font-bold text-gray-100`}>
+        entering={BounceInLeft}
+        exiting={BounceOutRight}
+        className={`flex justify-around  h-[40%] w-[80%] items-center`}>
+        <View className={`flex-1 items-center justify-center`}>
+          <Text className={`text-3xl font-bold text-gray-200 `}>
             PLEASE SELECT BELOW
           </Text>
         </View>
-        <View className={`flex-row justify-around `}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Options')}
-            className={`bg-blue-500 rounded-full mb-4 w-24 p-4`}>
-            <Text className={`text-white text-center text-xl font-bold`}>
-              Create
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className={`bg-gray-700  rounded-full mb-4 w-24 p-4`}>
-            <Text className={`text-gray-100 text-center text-xl font-bold`}>
-              Join
-            </Text>
-          </TouchableOpacity>
+        <View className='flex-1 flex-col justify-evenly flex  items-center'>
+          <ThemedButton
+            onPress={() => {
+              navigation.navigate('RoomAndUser');
+              setCreated(true);
+            }}
+            name='bruce'
+            raiseLevel={0}
+            borderRadius={0}
+            borderWidth={2}
+            backgroundColor='#e5e7eb'
+            type='secondary'>
+            <Text className='text-2xl font-bold tracking-wider'>CREATE</Text>
+          </ThemedButton>
+          <ThemedButton
+            onPress={() => {
+              navigation.navigate('RoomAndUser');
+              setCreated(false);
+            }}
+            name='bruce'
+            raiseLevel={0}
+            borderRadius={0}
+            backgroundColor='#e5e7eb'
+            type='secondary'>
+            <Text className='text-2xl font-bold tracking-wider'> JOIN</Text>
+          </ThemedButton>
         </View>
       </Animated.View>
     </ImageBackground>
   );
 };
 
-export default HomeScreen;
+export default JoinOrCreateScreen;
