@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Text, View, StyleSheet, ImageBackground } from 'react-native';
 import Animated, { BounceInDown, BounceInLeft } from 'react-native-reanimated';
-import Buttons from '../components/Buttons';
+import Buttons from '../src/components/Buttons';
 
 const OptionsScreen = ({ navigation, globalVariables }) => {
   const { playType, created, roomID, playerNames } = globalVariables;

@@ -40,8 +40,6 @@ const NavigationBar = ({ globalVariables }) => {
             className={`flex-row flex items-center justify-center `}
             onPress={() => {
               navigation.navigate('Home');
-              setPlayType('');
-              setSteps(1);
             }}>
             <View className={`flex-row text-2xl justify-center items-center`}>
               {createLogo()}

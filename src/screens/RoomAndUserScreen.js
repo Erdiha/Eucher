@@ -5,7 +5,7 @@ import {
   ImageBackground,
   ToastAndroid,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Animated, {
   BounceOutDown,
   BounceOutRight,
@@ -17,72 +17,54 @@ import io from 'socket.io-client';
 
 const RoomAndUserScreen = ({ globalVariables, navigation }) => {
   const {
-    setPlayerNames,
+    setPlayerDetails,
     setRoomID,
     created,
     socket,
-    allPlayers,
     setAllPlayers,
-    setSocket,
+    roomID,
+    playerName,
+    allPlayers,
   } = globalVariables;
-  const [gamerName, setGamerName] = useState('');
-  const [room, setRoom] = useState('');
+  const [name, setName] = useState(playerName);
+  const [room, setRoom] = useState(roomID);
 
   useEffect(() => {
-    if (allPlayers.length === 4) {
-      navigation.navigate('Game');
-    }
-  }, [allPlayers]);
+    socket.current = io('http://192.168.50.9:3000');
+    socket.current.on('connect', () => {
+      console.log('Connected to server');
+    });
 
-  useEffect(() => {
-    setSocket(io('http://192.168.50.9:3000'));
+    socket.current.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+
+    return () => {
+      socket.current.disconnect();
+    };
   }, []);
 
   const handleSubmit = () => {
-    if (created) {
-      socket.emit(
-        'create game',
-        {
+    socket.current.emit('join_or_create', { room, name }, (response) => {
+      if (response.success) {
+        setRoomID(room);
+        setName(name);
+        const allPlayers = response.players.map((player) => ({
           room,
-          username: gamerName,
-        },
-        (response) => {
-          console.log('response', response);
-          if (response.success) {
-            setRoomID(room);
-            setPlayerNames(gamerName);
-            setAllPlayers(response.players);
-            navigation.navigate('TableSeats');
-          } else {
-            // Prompt user to try again with a different room ID
-            alert(response.message);
-          }
-        },
-      );
-    } else {
-      socket.emit(
-        'join room',
-        {
-          room,
-          username: gamerName,
-        },
-        (response) => {
-          console.log('response', response);
-          if (response.success) {
-            setRoomID(room);
-            setPlayerNames(gamerName);
-
-            setAllPlayers(response.players);
-            navigation.navigate('TableSeats');
-          } else {
-            // Prompt user to create room or try again with a valid room ID
-            alert(response.message);
-          }
-        },
-      );
-    }
+          name: player.name,
+          seat: player.seat,
+          id: player.id,
+        }));
+        setAllPlayers(allPlayers);
+        setPlayerDetails(response.playerDetails);
+        navigation.navigate('TableSeats');
+      } else {
+        alert(response.message);
+      }
+    });
   };
 
+  console.log('setAllPlayers', allPlayers);
   return (
     <ImageBackground
       source={require('../../assets/deck-of-cards3.jpg')}
@@ -112,7 +94,7 @@ const RoomAndUserScreen = ({ globalVariables, navigation }) => {
           <TextInput
             className='bg-gray-100 h-10  p-2 my-2'
             autoCorrect={false}
-            value={gamerName}
+            value={name}
             onChangeText={(e) => setGamerName(e)}
             placeholder='Create Gamer Tag...'
             selectionColor='gray'

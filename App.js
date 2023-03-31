@@ -1,9 +1,8 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './src/screens/HomeScreen';
-import OptionsScreen from './src/screens/OptionsScreen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Navbar from './src/components/NavBar';
 import JoinOrCreateScreen from './src/screens/JoinOrCreateScreen';
@@ -15,46 +14,50 @@ const Tab = createBottomTabNavigator();
 
 export default function App() {
   const [hasConnection, setConnection] = useState(false);
-  const [time, setTime] = useState(null);
   const [showOptions, setShowOptions] = React.useState(false);
-  const [playType, setPlayType] = useState('');
   const [numPlayers, setNumPlayers] = useState('');
-  const [playerNames, setPlayerNames] = useState([]);
+  const [playerName, setPlayerName] = useState('');
   const [roomID, setRoomID] = useState('');
   const [created, setCreated] = useState(true);
   const [allMessages, setAllMessages] = useState([]);
-  const [chatMessage, setChatMessage] = useState();
   const [teams, setTeams] = useState({ team1: [], team2: [] });
-  const [socket, setSocket] = useState(null);
   const [allPlayers, setAllPlayers] = useState([]);
+  const [cards, setCards] = useState([]);
+  const [seats, setSeats] = React.useState([
+    { id: 1, position: 'north', taken: false, player: null, team: 'team1' },
+    { id: 2, position: 'east', taken: false, player: null, team: 'team2' },
+    { id: 3, position: 'south', taken: false, player: null, team: 'team1' },
+    { id: 4, position: 'west', taken: false, player: null, team: 'team2' },
+  ]);
+  const [playerDetails, setPlayerDetails] = useState(null);
+  const socket = useRef();
 
   const globalVariables = {
+    cards,
+    setCards,
     showOptions,
     setShowOptions,
-    playType,
     setNumPlayers,
-    setPlayerNames,
-    setPlayType,
+    setPlayerName,
     numPlayers,
-    playerNames,
+    playerName,
     hasConnection,
     setConnection,
-    time,
-    setTime,
     roomID,
     setRoomID,
     created,
     setCreated,
-    chatMessage,
-    setChatMessage,
     allMessages,
     setAllMessages,
     teams,
     setTeams,
     socket,
-    setSocket,
     allPlayers,
     setAllPlayers,
+    seats,
+    setSeats,
+    setPlayerDetails,
+    playerDetails,
   };
 
   return (
@@ -74,12 +77,6 @@ export default function App() {
                 {...props}
                 globalVariables={globalVariables}
               />
-            )}
-          </Stack.Screen>
-
-          <Stack.Screen name='Options'>
-            {(props) => (
-              <OptionsScreen {...props} globalVariables={globalVariables} />
             )}
           </Stack.Screen>
           <Stack.Screen name='Game'>

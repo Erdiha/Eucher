@@ -2,19 +2,40 @@ import React, { useState } from 'react';
 import { View, Text, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-const Card = ({ suit, value }) => {
+const Card = ({
+  suit,
+  value,
+  setClickedCard,
+  clickedCard,
+  cardSize,
+  socket,
+}) => {
   const color = suit === 'heart' || suit === 'diamond' ? 'red' : 'black';
   const [showFront, setShowFront] = useState(true);
 
   const toggleShowFront = () => {
-    setShowFront(!showFront);
+    const item = { suit, value };
+    const player = socket.current.id;
+
+    if (clickedCard.find((card) => card.player === player)) {
+      // User has already clicked, do nothing
+      return;
+    } else {
+      // User hasn't clicked, emit event and update clickedCard
+      const updatedClickedCard = [
+        ...clickedCard,
+        { player, startingCard: { suit: suit, value: value } },
+      ];
+
+      socket.current.emit('card_clicked', updatedClickedCard);
+    }
   };
 
   return (
     <View
       style={{
-        height: 120,
-        width: 80,
+        height: cardSize === 'small' ? 60 : 120,
+        width: cardSize === 'small' ? 40 : 80,
         backgroundColor: 'white',
         borderRadius: 8,
         justifyContent: 'center',
@@ -22,6 +43,7 @@ const Card = ({ suit, value }) => {
         borderWidth: 1,
         borderColor: 'black',
         position: 'relative',
+        transform: [{ rotate: cardSize === 'small' ? '90deg' : '0deg' }],
       }}
       onTouchEnd={toggleShowFront}>
       {showFront ? (
@@ -46,11 +68,11 @@ const Card = ({ suit, value }) => {
         </>
       ) : (
         <Image
-          source={require('../../assets/card-back.png')}
+          source={require('../../cards/BACK.png')}
           className='p-1'
           style={{
-            height: '99%',
-            width: '90%',
+            height: '100%',
+            width: '100%',
             borderRadius: 10,
           }}
         />

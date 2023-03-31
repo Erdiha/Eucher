@@ -6,7 +6,6 @@ import { ThemedButton } from 'react-native-really-awesome-button';
 import { AntDesign } from '@expo/vector-icons';
 
 export default function Home({ navigation, globalVariables }) {
-  const { steps, setSteps } = globalVariables;
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);

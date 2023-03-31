@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Animated, {
@@ -11,7 +11,34 @@ import Animated, {
 import { ThemedButton } from 'react-native-really-awesome-button';
 
 const JoinOrCreateScreen = ({ globalVariables, navigation }) => {
-  const { created, setCreated, playerNames } = globalVariables;
+  const { created, setRoomID, roomID, setCreated, playerName, setPlayerName } =
+    globalVariables;
+
+  useEffect(() => {
+    const names = [
+      'Bruce',
+      'Clark',
+      'Diana',
+      'Hal',
+      'Erdi',
+      'Erdem',
+      'Fatma',
+      'Furkan',
+      'Gizem',
+      'Gül',
+      'Gülşah',
+      'Gülşen',
+      'Gülsüm',
+    ];
+    setPlayerName(names[Math.floor(Math.random() * 13)]);
+
+    if (created) {
+      // only generate a new room ID if one hasn't been set yet
+      setRoomID('room' + Math.floor(Math.random() * 10));
+    } else {
+      setRoomID(roomID);
+    }
+  }, [created]);
 
   return (
     <ImageBackground
