@@ -9,6 +9,7 @@ import JoinOrCreateScreen from './src/screens/JoinOrCreateScreen';
 import GameScreen from './src/screens/GameScreen';
 import RoomAndUserScreen from './src/screens/RoomAndUserScreen';
 import TableSeatsScreen from './src/screens/TableSeatsScreen';
+// import TeamSelectorScreen from './src/screens/TeamSelectorScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -23,16 +24,57 @@ export default function App() {
   const [teams, setTeams] = useState({ team1: [], team2: [] });
   const [allPlayers, setAllPlayers] = useState([]);
   const [cards, setCards] = useState([]);
+  const [dealer, setDealer] = useState('');
+  const [currentPlayer, setCurrentPlayer] = useState({
+    id: '',
+    name: '',
+    seatID: '',
+    seratPosition: null,
+    hand: [],
+    discard: [],
+    picked: [],
+    score: 0,
+  });
   const [seats, setSeats] = React.useState([
-    { id: 1, position: 'north', taken: false, player: null, team: 'team1' },
-    { id: 2, position: 'east', taken: false, player: null, team: 'team2' },
-    { id: 3, position: 'south', taken: false, player: null, team: 'team1' },
-    { id: 4, position: 'west', taken: false, player: null, team: 'team2' },
+    {
+      id: 1,
+      position: 'south',
+      taken: false,
+      player: null,
+      team: 'team1',
+      playerID: '',
+    },
+    {
+      id: 2,
+      position: 'west',
+      taken: false,
+      player: null,
+      team: 'team2',
+      playerID: '',
+    },
+    {
+      id: 3,
+      position: 'north',
+      taken: false,
+      player: null,
+      team: 'team1',
+      playerID: '',
+    },
+    {
+      id: 4,
+      position: 'east',
+      taken: false,
+      player: null,
+      team: 'team2',
+      playerID: '',
+    },
   ]);
   const [playerDetails, setPlayerDetails] = useState(null);
   const socket = useRef();
 
   const globalVariables = {
+    currentPlayer,
+    setCurrentPlayer,
     cards,
     setCards,
     showOptions,
@@ -58,6 +100,8 @@ export default function App() {
     setSeats,
     setPlayerDetails,
     playerDetails,
+    dealer,
+    setDealer,
   };
 
   return (
@@ -79,6 +123,14 @@ export default function App() {
               />
             )}
           </Stack.Screen>
+          {/* <Stack.Screen name='TeamSelector'>
+            {(props) => (
+              <TeamSelectorScreen
+                {...props}
+                globalVariables={globalVariables}
+              />
+            )}
+          </Stack.Screen> */}
           <Stack.Screen name='Game'>
             {(props) => (
               <GameScreen {...props} globalVariables={globalVariables} />

@@ -7,7 +7,7 @@ import {
   ToastAndroid,
   ActivityIndicator,
 } from 'react-native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ThemedButton } from 'react-native-really-awesome-button';
 import Animated, { BounceInLeft, SlideInLeft } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -19,67 +19,95 @@ const TableSeatsScreen = ({ navigation, globalVariables }) => {
     socket,
     seats,
     roomID,
-    playerNames,
     allPlayers,
-    playerDetails,
+    playerName,
     setSeats,
     setAllPlayers,
     setCards,
+    setPlayerDetails,
+    playerDetails,
   } = globalVariables;
+
+  useEffect(() => {
+    socket.current.on('all_players', (res) => {
+      setAllPlayers(res);
+    });
+  }, [socket.current]);
 
   const checkAllSeatsTaken = () => {
     return seats.filter((seat) => seat.taken).length === 2;
   };
 
-  React.useState(() => {
-    socket.current.emit('current_player');
-  }, []);
-
-  useEffect(() => {
+  useState(() => {
     socket.current.on('seat_update', (res) => setSeats(res));
-    // socket.on('join success', (res) => console.log(res));
-    // socket.on('join fail', (res) => console.log(res));
-    socket.current.on('all_players', (res) => {
-      setAllPlayers(res);
-    });
-  }, [socket]);
-  useEffect(() => {
-    socket.current.emit('get_deck');
-
-    // Server-side code to handle the 'get_deck' event and send the deck to the client
+    socket.current.emit('get_deck', roomID);
     socket.current.on('receive_deck', (deck) => {
-      console.log('deck in table', deck);
       setCards(deck); // do something with the deck
     });
   }, []);
 
   useEffect(() => {
-    if (allPlayers?.length === 2 && checkAllSeatsTaken()) {
+    if (allPlayers?.length >= 2 && checkAllSeatsTaken()) {
       navigation.navigate('Game');
     }
-  }, [allPlayers, seats, socket, playerNames, navigation]);
+  }, [allPlayers, seats]);
 
+  //handles the seat press
   const handleSeatPress = (id) => {
-    const updatedSeats = seats.map((seat) =>
-      seat.id === id
-        ? {
-            ...seat,
-            taken: !seat.taken,
-            player: seat.taken
-              ? null
-              : currentUser(allPlayers, socket.current.id).name,
-            team:
-              seat.position === 'north' || seat.position === 'south'
-                ? 'team1'
-                : 'team2',
-          }
-        : seat,
+    const currentPlayer = allPlayers.find(
+      (player) => player.id === socket.current.id,
     );
 
-    socket.current.emit('seat_update', updatedSeats, roomID);
-  };
+    if (currentPlayer?.seatID || currentPlayer?.seatPosition) {
+      ToastAndroid.show('You have already joined a team', ToastAndroid.SHORT);
+      return;
+    }
 
-  console.log('seats', seats, 'player details', playerDetails);
+    const seatIndex = seats.findIndex((seat) => seat.id === id);
+
+    if (seatIndex === -1) {
+      console.error(`Seat ${id} not found.`);
+      return;
+    }
+
+    const seat = seats[seatIndex];
+
+    const updatedSeats = seats.map((s) =>
+      s.id === id
+        ? {
+            ...s,
+            taken: true,
+            player: currentPlayer?.name,
+            playerID: socket.current.id,
+          }
+        : s,
+    );
+
+    const updatedPlayer = {
+      ...currentPlayer,
+      seatID: seat.id,
+      seatPosition: seat.position,
+    };
+
+    const allPlayersWithSeat = allPlayers.map((player) =>
+      player.id === socket.current.id ? updatedPlayer : player,
+    );
+
+    socket.current.emit('seat_update', updatedSeats);
+    socket.current.emit('take_seat', {
+      allPlayers: allPlayersWithSeat,
+      playerDetails: updatedPlayer,
+      userId: socket.current.id,
+      room: roomID,
+      seat,
+      seats,
+    });
+
+    setPlayerDetails(updatedPlayer);
+    setAllPlayers(allPlayersWithSeat);
+    setSeats(updatedSeats);
+    console.log('playerDetails and allplayers', playerDetails, allPlayers);
+  };
 
   return (
     <ImageBackground
@@ -87,7 +115,8 @@ const TableSeatsScreen = ({ navigation, globalVariables }) => {
       className={`flex-1 items-center justify-center bg-cover relative`}>
       <Animated.View className=' absolute right-3 top-4'>
         <Text className='text-md flex-1 bg-white/60 border-black/10 rounded-xl self-end flex justify-end p-2 uppercase italic font-semibold text-gray-900 tracking-widest'>
-          {currentUser(allPlayers, socket.current.id).name}
+          {currentUser(allPlayers, socket.current.id) &&
+            currentUser(allPlayers, socket.current.id).name}
         </Text>
       </Animated.View>
       <Animated.View
@@ -95,11 +124,13 @@ const TableSeatsScreen = ({ navigation, globalVariables }) => {
         className='relative bg-white/20 w-[75%] h-[65%] rounded-[30px] border-black/50 border-[8px] justify-center items-center'>
         {seats.map((seat, index) => (
           <TouchableOpacity
-            disabled={allPlayers.length < 2}
+            disabled={allPlayers?.length < 2}
             backgroundColor='#e5e7eb'
             key={seat.id}
-            className={`h-[110px] w-[75px] rounded-[10px] absolute flex justify-center items-center bg-black/60 p-2
-      border-2 border-white/90
+            className={`h-[110px] w-[75px] rounded-[10px] absolute flex justify-center items-center bg-black/60 p-2 ${
+              seat.team === 'team1' ? 'border-red-500' : 'border-blue-500'
+            }
+      border-2
       ${seatStyles(seat.position)} ${
               seat.taken ? 'opacity-20 bg-white/50 border-black/50' : ''
             }`}
@@ -131,7 +162,7 @@ const TableSeatsScreen = ({ navigation, globalVariables }) => {
                     <Text
                       className='font-medium p-1 border-b-[1px] text-center border-gray-500 text-gray-100 bg-black/50'
                       key={index}>
-                      {item.name}
+                      {item && item.name}
                     </Text>
                   </Animated.View>
                 );
@@ -141,11 +172,11 @@ const TableSeatsScreen = ({ navigation, globalVariables }) => {
 
           <View className='flex relative bg-black/40 w-full h-24 justify-center items-center space-y-2'>
             <Text className='text-white font-normal text-lg text-center border-red-500 border-2  p-2'>{`${
-              allPlayers.length < 2 ? 'Waiting Users' : 'Choose Seat'
+              allPlayers?.length < 2 ? 'Waiting Users' : 'Choose Seat'
             }`}</Text>
-            {allPlayers.length < 2 && (
+            {allPlayers?.length < 2 && (
               <ActivityIndicator
-                animating={allPlayers.length < 2}
+                animating={allPlayers?.length < 2}
                 size='large'
                 color='white'
                 Text='waiting all users'

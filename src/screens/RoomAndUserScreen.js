@@ -14,10 +14,13 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ThemedButton } from 'react-native-really-awesome-button';
 import io from 'socket.io-client';
+import { Buttons } from '../components/Buttons';
 
 const RoomAndUserScreen = ({ globalVariables, navigation }) => {
   const {
     setPlayerDetails,
+    currentPlayer,
+    setCurrentPlayer,
     setRoomID,
     created,
     socket,
@@ -25,10 +28,11 @@ const RoomAndUserScreen = ({ globalVariables, navigation }) => {
     roomID,
     playerName,
     allPlayers,
+    playerDetails,
+    setPlayerName,
   } = globalVariables;
   const [name, setName] = useState(playerName);
   const [room, setRoom] = useState(roomID);
-
   useEffect(() => {
     socket.current = io('http://192.168.50.9:3000');
     socket.current.on('connect', () => {
@@ -45,26 +49,23 @@ const RoomAndUserScreen = ({ globalVariables, navigation }) => {
   }, []);
 
   const handleSubmit = () => {
+    console.log('inside handlesubmit');
     socket.current.emit('join_or_create', { room, name }, (response) => {
-      if (response.success) {
+      if (response && response.success) {
         setRoomID(room);
         setName(name);
-        const allPlayers = response.players.map((player) => ({
-          room,
-          name: player.name,
-          seat: player.seat,
-          id: player.id,
-        }));
-        setAllPlayers(allPlayers);
         setPlayerDetails(response.playerDetails);
+        setAllPlayers(response.players);
         navigation.navigate('TableSeats');
+      } else if (response && response.message) {
+        ToastAndroid.show(response.message, ToastAndroid.SHORT);
       } else {
-        alert(response.message);
+        ToastAndroid.show('Something went wrong', ToastAndroid.SHORT);
       }
     });
   };
 
-  console.log('setAllPlayers', allPlayers);
+  const { NextButton } = Buttons(navigation, globalVariables, handleSubmit);
   return (
     <ImageBackground
       source={require('../../assets/deck-of-cards3.jpg')}
@@ -95,22 +96,12 @@ const RoomAndUserScreen = ({ globalVariables, navigation }) => {
             className='bg-gray-100 h-10  p-2 my-2'
             autoCorrect={false}
             value={name}
-            onChangeText={(e) => setGamerName(e)}
+            //onChangeText={(e) => setGamerName(e)}
             placeholder='Create Gamer Tag...'
             selectionColor='gray'
           />
         </View>
-        <ThemedButton
-          style={{ position: 'absolute', right: 0 }}
-          onPress={() => handleSubmit()}
-          name='bruce'
-          raiseLevel={0}
-          borderRadius={0}
-          size=''
-          backgroundColor='#e5e7eb'
-          type='secondary'>
-          <Text className='text-2xl font-bold tracking-wider'> NEXT</Text>
-        </ThemedButton>
+        <NextButton />
       </Animated.View>
     </ImageBackground>
   );

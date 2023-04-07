@@ -13,62 +13,78 @@ export const seatStyles = (position) => {
   }
 };
 
+export const arrangeSeats = (seats, currentUserId) => {
+  const currentUserSeat = seats.find((seat) => seat.playerID === currentUserId);
+
+  if (currentUserSeat.id === 1 && currentUserSeat.position === 'south') {
+    return seats;
+  }
+
+  const numSeats = seats.length;
+  const seatCopy = [...seats];
+
+  const offset = (currentUserSeat.id - 1) * -1; // calculate the offset for rotating the seats
+  const rotatedSeats = seatCopy.map((seat) => {
+    const newSeatId = ((seat.id - 1 + offset + numSeats) % numSeats) + 1; // calculate the new seat ID after rotation
+    let newPosition = seat.position;
+
+    if (currentUserSeat.position === 'north' && seat.position === 'west') {
+      newPosition = 'south';
+    } else if (
+      currentUserSeat.position === 'south' &&
+      seat.position === 'east'
+    ) {
+      newPosition = 'north';
+    } else if (
+      currentUserSeat.position === 'east' &&
+      seat.position === 'north'
+    ) {
+      newPosition = 'west';
+    } else if (
+      currentUserSeat.position === 'west' &&
+      seat.position === 'south'
+    ) {
+      newPosition = 'east';
+    }
+
+    return {
+      ...seat,
+      id: newSeatId,
+      position: newPosition,
+    };
+  });
+
+  return rotatedSeats;
+};
+
+/////////currentuser/////////
+
 export function currentUser(players, id) {
-  return players.find((player) => player.id === id);
+  return players?.find((player) => player?.id === id);
 }
 
 let tempTeam = '';
 
-export const gameSittingStyle = (player, socket) => {
-  const { team, position, name } = player;
+export const findPlayerWithHighestCard = (clickedCard, allPlayers) => {
+  const startingCards = clickedCard.map((card) => card.startingCard);
+  // console.log(
+  //   'this is in find player with highest card',
 
-  if (player.id === socket) {
-    tempTeam = player.team;
-    return `bottom-0  h-[220px]`;
-  }
-  if (player.id !== socket && player.team === tempTeam) {
-    return 'z-50';
-  }
-
-  switch (position) {
-    case 'east':
-      return 'z-0 right-0';
-    case 'west':
-      return 'z-0';
-    default:
-      return null;
-  }
-};
-export const shuffleCards = (cards) => {
-  const shuffledCards = [...cards];
-
-  for (let i = shuffledCards.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffledCards[i], shuffledCards[j]] = [shuffledCards[j], shuffledCards[i]];
-  }
-
-  return shuffledCards;
-};
-
-export function createDeck() {
-  const suits = ['heart', 'spade', 'diamond', 'club'];
-  const values = ['A', '9', '10', 'J', 'Q', 'K'];
-  const deck = [];
-  suits.forEach((suit) => {
-    values.forEach((value) => {
-      deck.push({ suit, value });
-    });
-  });
-  return deck;
-}
-export const findPlayerWithHighestCard = (clickedCard) => {
-  let highestCard = null;
+  //   startingCards,
+  // );
+  let highestCard = 0;
   let playerWithHighestCard = null;
+  let winnerCard = null;
 
   for (let i = 0; i < clickedCard.length; i++) {
     const card = clickedCard[i].startingCard;
+    const user = clickedCard[i].player;
+
     const cardValue = card.value;
-    let numericalValue = parseInt(cardValue);
+
+    let numericalValue = null;
+
+    // console.log('this is the card value', cardValue);
     switch (cardValue) {
       case 'A':
         numericalValue = 14;
@@ -82,14 +98,22 @@ export const findPlayerWithHighestCard = (clickedCard) => {
       case 'J':
         numericalValue = 11;
         break;
+      default:
+        numericalValue = parseInt(cardValue);
     }
-    if (!highestCard || numericalValue > highestCard.numericalValue) {
-      highestCard = { ...card, numericalValue };
-      playerWithHighestCard = clickedCard[i].player;
+    // console.log('this is the numerical value', numericalValue);
+    if (numericalValue > highestCard) {
+      highestCard = numericalValue;
+      playerWithHighestCard = user;
+      winnerCard = card;
     }
   }
 
-  return { playerWithHighestCard, highestCard };
+  const winner = allPlayers.find(
+    (player) => player.id === playerWithHighestCard,
+  ).name;
+  // console.log('this is the player with highest card', winner);
+  return { winner, winnerCard };
 };
 
 export const shuffleDeck = (newCards) => {
@@ -101,3 +125,38 @@ export const shuffleDeck = (newCards) => {
   }
   return newCards;
 };
+
+export const findUser = (allPlayers, player) => {
+  return allPlayers.find((p) => p.name === player);
+};
+
+export const sittingCSS = (id) => {
+  switch (id) {
+    case 1:
+      return '-bottom-0';
+    case 2:
+      return '-left-10 -rotate-90';
+    case 3:
+      return '-top-0';
+    case 4:
+      return '-right-10 -rotate-90';
+    default:
+      return null;
+  }
+};
+
+export const names = [
+  'Bruce',
+  'Clark',
+  'Diana',
+  'Hal',
+  'Erdi',
+  'Erdem',
+  'Fatma',
+  'Furkan',
+  'Gizem',
+  'Gül',
+  'Gülşah',
+  'Gülşen',
+  'Gülsüm',
+];

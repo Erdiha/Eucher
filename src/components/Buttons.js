@@ -1,83 +1,85 @@
 import React, { useState } from 'react';
 import { Text, View, StyleSheet, Image } from 'react-native';
-
+import { AntDesign } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedButton } from 'react-native-really-awesome-button';
 
-export default function Buttons(navigation, globalVariables) {
-  const { playType, setPlayType, playerNames, roomID } = globalVariables;
-  console.log(globalVariables, navigation);
-  function GroupButton() {
+export const Buttons = (navigation, globalVariables, handleSubmit) => {
+  const { setCreated, setRoomID, setPlayerName } = globalVariables;
+
+  const PlayButton = () => {
     return (
       <ThemedButton
-        name='bruce'
         type='secondary'
+        name='bruce'
         raiseLevel={0}
         borderRadius={0}
-        backgroundColor='#e5e7eb'
         borderWidth={2}
-        onPress={() => setPlayType('group')}>
-        <Text className='text-2xl font-bold tracking-wider'>Groups</Text>
+        borderColor='black'
+        after={<AntDesign name='rightcircle' size={24} color='black' />}
+        onPress={() => {
+          navigation.navigate('JoinOrCreate');
+        }}>
+        <Text className='text-xl font-semibold tracking-wider px-2'>PLAY</Text>
       </ThemedButton>
     );
-  }
+  };
 
-  function SingleButton() {
+  const CreateButton = () => {
     return (
       <ThemedButton
-        name='bruce'
-        type='secondary'
-        raiseLevel={0}
-        borderRadius={0}
-        borderWidth={2}
-        backgroundColor='#e5e7eb'
-        size='medium'
         onPress={() => {
           navigation.navigate('RoomAndUser');
-          setPlayType('single');
-        }}>
-        <Text className='text-2xl font-bold tracking-wider'>Singles</Text>
+          setCreated(true);
+        }}
+        name='bruce'
+        size='large'
+        raiseLevel={0}
+        borderRadius={0}
+        borderWidth={2}
+        backgroundColor='#e5e7eb'
+        type='secondary'>
+        <Text className='flex text-2xl font-bold tracking-wide justify-center items-center'>
+          CREATE GAME
+        </Text>
       </ThemedButton>
     );
-  }
-  function StartButton() {
+  };
+
+  const JoinButton = () => {
     return (
       <ThemedButton
-        backgroundColor='#e5e7eb'
-        after={<Ionicons name='play' size={24} color='black' />}
+        onPress={() => {
+          navigation.navigate('RoomAndUser');
+          setCreated(false);
+        }}
         name='bruce'
         raiseLevel={0}
         borderRadius={0}
-        borderColor='black'
-        size='_'
-        borderWidth={2}
-        type='secondary'
-        onPress={() => navigation.navigate('Game')}
-        textColor='black'>
-        <Text className='text-2xl font-bold tracking-wider'>START</Text>
+        backgroundColor='#e5e7eb'
+        type='secondary'>
+        <Text className='text-2xl font-bold tracking-wider w-full'>
+          JOIN A GAME
+        </Text>
       </ThemedButton>
     );
-  }
-  function BackButton() {
+  };
+
+  const NextButton = () => {
     return (
       <ThemedButton
-        before={<Ionicons name='arrow-back' size={24} color='black' />}
-        backgroundColor='#e5e7eb'
+        style={{ position: 'absolute', right: 0 }}
+        onPress={() => handleSubmit()}
         name='bruce'
-        type='secondary'
-        textColor='black'
-        borderWidth={2}
-        borderRadius={0}
         raiseLevel={0}
-        size='_'
-        onPress={() =>
-          playType === ''
-            ? navigation.navigate('JoinOrCreate')
-            : setPlayType('')
-        }>
-        <Text className='text-2xl font-bold tracking-wider'>BACK</Text>
+        borderRadius={0}
+        size=''
+        backgroundColor='#e5e7eb'
+        type='secondary'>
+        <Text className='text-2xl font-bold tracking-wider'> NEXT</Text>
       </ThemedButton>
     );
-  }
-  return { BackButton, StartButton, SingleButton, GroupButton };
-}
+  };
+
+  return { PlayButton, JoinButton, CreateButton, NextButton };
+};

@@ -9,32 +9,19 @@ import Animated, {
   BounceOutRight,
 } from 'react-native-reanimated';
 import { ThemedButton } from 'react-native-really-awesome-button';
+import { Buttons } from '../components/Buttons';
+import { names } from '../components/HelperFunction';
 
 const JoinOrCreateScreen = ({ globalVariables, navigation }) => {
-  const { created, setRoomID, roomID, setCreated, playerName, setPlayerName } =
-    globalVariables;
+  const { created, setRoomID, roomID, setPlayerName } = globalVariables;
+  const { JoinButton, CreateButton } = Buttons(navigation, globalVariables);
+  const [rooms, setRooms] = useState([]);
 
   useEffect(() => {
-    const names = [
-      'Bruce',
-      'Clark',
-      'Diana',
-      'Hal',
-      'Erdi',
-      'Erdem',
-      'Fatma',
-      'Furkan',
-      'Gizem',
-      'Gül',
-      'Gülşah',
-      'Gülşen',
-      'Gülsüm',
-    ];
     setPlayerName(names[Math.floor(Math.random() * 13)]);
-
     if (created) {
       // only generate a new room ID if one hasn't been set yet
-      setRoomID('room' + Math.floor(Math.random() * 10));
+      setRoomID('room' + Math.floor(Math.random() * 1));
     } else {
       setRoomID(roomID);
     }
@@ -48,37 +35,10 @@ const JoinOrCreateScreen = ({ globalVariables, navigation }) => {
         entering={BounceInLeft}
         exiting={BounceOutRight}
         className={`flex justify-around  h-[40%] w-[80%] items-center`}>
-        <View className={`flex-1 items-center justify-center`}>
-          <Text className={`text-3xl font-bold text-gray-200 `}>
-            PLEASE SELECT BELOW
-          </Text>
-        </View>
-        <View className='flex-1 flex-col justify-evenly flex  items-center'>
-          <ThemedButton
-            onPress={() => {
-              navigation.navigate('RoomAndUser');
-              setCreated(true);
-            }}
-            name='bruce'
-            raiseLevel={0}
-            borderRadius={0}
-            borderWidth={2}
-            backgroundColor='#e5e7eb'
-            type='secondary'>
-            <Text className='text-2xl font-bold tracking-wider'>CREATE</Text>
-          </ThemedButton>
-          <ThemedButton
-            onPress={() => {
-              navigation.navigate('RoomAndUser');
-              setCreated(false);
-            }}
-            name='bruce'
-            raiseLevel={0}
-            borderRadius={0}
-            backgroundColor='#e5e7eb'
-            type='secondary'>
-            <Text className='text-2xl font-bold tracking-wider'> JOIN</Text>
-          </ThemedButton>
+        <View className='flex-1 flex-col justify-evenly items-center'>
+          <CreateButton />
+          <Text className='text-xl bg-black/50 text-gray-200'>OR</Text>
+          <JoinButton />
         </View>
       </Animated.View>
     </ImageBackground>

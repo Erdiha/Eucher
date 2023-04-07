@@ -8,22 +8,7 @@ import Animated, {
   SlideOutDown,
 } from 'react-native-reanimated';
 
-const Deck = ({
-  setClickedCard,
-  clickedCard,
-  shuffle,
-  setShuffle,
-  cards,
-  setCards,
-  socket,
-  rounds,
-}) => {
-  useEffect(() => {
-    socket.current.on('shuffled', (newDeck) => {
-      setCards(newDeck);
-    });
-  }, [shuffle]);
-
+const Deck = ({ setClickedCard, clickedCard, cards, socket, roomID }) => {
   return (
     <Animated.View
       entering={SlideInRight.duration(1500)}
@@ -35,19 +20,21 @@ const Deck = ({
       }}>
       {cards.map((card, index) => {
         // Determine the translation amount based on the card index
-        const translateX = index * 5;
-        const translateY = index * 1;
+        const translateX = index * 0;
+        const translateY = index * 0;
+        const rotate = -index * 7.9 + 'deg';
 
         return (
           <Animated.View
-            entering={SlideInLeft.duration(1500)}
-            exiting={SlideOutDown.duration(1500)}
+            entering={SlideInLeft}
+            exiting={SlideOutDown}
             key={`${card.suit}-${card.value}-${index}`}
             style={{
               position: 'absolute',
               alignItems: 'center',
+              transformOrigin: 'left bottom',
               // Apply the translation to the card
-              transform: [{ translateX }, { translateY }],
+              transform: [{ translateX }, { translateY }, { rotate }],
             }}>
             <Card
               suit={card.suit}
@@ -55,13 +42,15 @@ const Deck = ({
               setClickedCard={setClickedCard}
               clickedCard={clickedCard}
               socket={socket}
-              rounds={rounds}
+              position={'deck'}
+              roomID={roomID}
             />
           </Animated.View>
         );
       })}
     </Animated.View>
   );
+  s;
 };
 
 export default Deck;
